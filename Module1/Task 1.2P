@@ -1,0 +1,33 @@
+const int sensorpin = 2;  
+const int ledPin = LED_BUILTIN; 
+
+volatile bool motionDetected = false;
+
+void motionISR() {
+    motionDetected = true;  
+}
+
+void setup() {
+    pinMode(sensorpin, INPUT);
+    pinMode(ledPin, OUTPUT);
+    Serial.begin(9600);
+
+    // interrupt to sensorpin, trigger on change
+    attachInterrupt(digitalPinToInterrupt(sensorpin), motionISR, CHANGE);
+}
+
+void loop() {
+    if (motionDetected) {
+        int State = digitalRead(sensorpin); 
+
+        if (State == HIGH) {
+            digitalWrite(ledPin, HIGH);
+            Serial.println("Motion Detected! LED is ON");
+        } else {
+            digitalWrite(ledPin, LOW);
+            Serial.println("No Motion Detected. LED is OFF");
+        }
+        
+        motionDetected = false; 
+    }
+}
