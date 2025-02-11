@@ -1,0 +1,44 @@
+const int pirPin = 2;         
+const int tiltPin = 3;        
+const int ledMotion = LED_BUILTIN;  
+const int ledTilt = 7;       
+
+volatile bool motionDetected = false;  
+volatile bool tiltDetected = false;   
+
+void motionISR() {
+    motionDetected = true;
+}
+
+void tiltISR() {
+    tiltDetected = true;
+}
+
+void setup() {
+    pinMode(pirPin, INPUT);        
+    pinMode(tiltPin, INPUT_PULLUP);
+    pinMode(ledMotion, OUTPUT);   
+    pinMode(ledTilt, OUTPUT);      
+    Serial.begin(9600);            
+
+    attachInterrupt(digitalPinToInterrupt(pirPin), motionISR, RISING); 
+    attachInterrupt(digitalPinToInterrupt(tiltPin), tiltISR, FALLING);  
+}
+
+void loop() {
+    if (motionDetected) {
+        digitalWrite(ledMotion, HIGH);  
+        Serial.println("Motion Detected! LED is ON");
+        delay(500);
+        digitalWrite(ledMotion, LOW);   
+        motionDetected = false;        
+    }
+
+    if (tiltDetected) {
+        digitalWrite(ledTilt, HIGH);    
+        Serial.println("Tilt Detected! LED is ON");
+        delay(500);
+        digitalWrite(ledTilt, LOW);     
+        tiltDetected = false;           
+    }
+}
