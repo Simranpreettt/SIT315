@@ -1,0 +1,53 @@
+// C++ code
+//
+
+const byte LED_PIN = 13;
+const byte METER_PIN = A4;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(METER_PIN, INPUT);
+
+  Serial.begin(9600);
+  
+  // Start timer with frequency of 0.5Hz (2second interval)
+  startTimer(0.5);
+}
+
+void loop() {
+  // Read potentiometer value
+  int potValue = analogRead(METER_PIN);
+  double timerFrequency = map(potValue, 0, 1023, 0.2 * 100, 2.0 * 100) / 100.0;
+
+  Serial.print("Timer Frequency: ");
+  Serial.print(timerFrequency);
+  Serial.println(" Hz");
+
+  startTimer(timerFrequency);
+  delay(500); 
+}
+
+void startTimer(double timerFrequency) {
+  noInterrupts(); // Disable interrupts 
+  
+  TCCR1A = 0; // Reset control registers
+  TCCR1B = 0;
+  TCNT1 = 0;  // Reset timer count
+
+  // Calculate OCR1A based on the given frequency
+  double period = 1.0 / timerFrequency; // Period in seconds
+  int ocrValue = (int)((16e6 / 1024) * period) - 1;
+
+  OCR1A = ocrValue; // Set compare match register
+  
+  TCCR1B |= (1 << WGM12); // CTC mode
+  TCCR1B |= (1 << CS12) | (1 << CS10); // Prescaler 1024
+  
+  TIMSK1 |= (1 << OCIE1A); // Enable timer compare interrupt
+
+  interrupts(); // Enable interrupts
+}
+
+ISR(TIMER1_COMPA_vect) {
+  digitalWrite(LED_PIN, digitalRead(LED_PIN) ^ 1); 
+}
